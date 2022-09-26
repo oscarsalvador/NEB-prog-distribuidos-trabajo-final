@@ -1,0 +1,162 @@
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.net.ServerSocket;
+import java.net.Socket;
+import java.time.chrono.ThaiBuddhistEra;
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.crypto.SealedObject;
+import javax.print.CancelablePrintJob;
+
+public class Proxy {
+    //puertos
+    private int pEscuchaClientes = 5000;
+    private int pEscuchaServidores = 5001;
+    // este va a depender del servidor especifico private int pSalidaServidores = 5002;
+
+    private class ServidorStatus{
+        public int mPuerto;
+        public String mDireccion = "localhost";
+        public int peticionesAtendidas = 0;
+
+        ServidorStatus(int puerto, String direccion){
+            mPuerto = puerto;
+            mDireccion = direccion;
+        }
+    }
+    private List<ServidorStatus> mServidores = new ArrayList<ServidorStatus>();
+
+
+
+    Proxy(){
+        ServidorStatus servidor = new ServidorStatus(5002, "localhost");
+        mServidores.add(servidor);
+    }
+
+
+
+    private void escuchaClientes(){
+        try{
+            ServerSocket conexionCliente = new ServerSocket(pEscuchaClientes);
+            Socket datosCliente;
+            
+            while( (datosCliente = conexionCliente.accept()) != null){
+                AtiendeCliente atiende = this.new AtiendeCliente(this, datosCliente);
+                Thread hilo = new Thread(atiende);
+                hilo.start();
+            }
+
+            //CERRAR CONEXIONCLIENTE?
+        }catch(Exception ex){ex.printStackTrace();}
+    }
+    private void usaServidor(Socket datosCliente){
+        ServidorStatus disponible = eligeServidor();
+        try{
+            if(probeServidor(disponible.mDireccion, disponible.mPuerto)){
+                ObjectInputStream entradaCliente = new ObjectInputStream(datosCliente.getInputStream());
+    
+                Socket datosServidor = new Socket(disponible.mDireccion, disponible.mPuerto);
+                ObjectOutputStream salidaServidor = new ObjectOutputStream(datosServidor.getOutputStream());
+                salidaServidor.writeObject(entradaCliente.readObject());
+    
+                ObjectInputStream entradaServidor = new ObjectInputStream(datosServidor.getInputStream());
+    
+                ObjectOutputStream salidaCliente = new ObjectOutputStream(datosCliente.getOutputStream());
+                salidaCliente.writeObject(entradaServidor.readObject());
+    
+                //disponible.peticionesAtendidas += 1; en elegir servidor mejor, asi no elige dos veces el mismo
+            }else{
+                //healthcheck fallado, ese servidor ha caido/tiene problemas
+                mServidores.remove(disponible);
+                usaServidor(datosCliente); //ES ESTO KOSHER?
+                //DONDE CERRAR HILOS, DONDE CERRAR SOCKETS?
+            }
+            
+        }catch(Exception ex){ex.printStackTrace();}
+    }
+    private boolean probeServidor(String direccion, int puerto){
+        try{
+            Socket datosServidor = new Socket(direccion, puerto);
+            datosServidor.setSoTimeout(6000);
+            
+            ObjectOutputStream salidaServidor = new ObjectOutputStream(datosServidor.getOutputStream());
+            
+            Object sonda = "sonda";
+            
+            salidaServidor.writeObject(sonda);
+
+            ObjectInputStream entradaServidor = new ObjectInputStream(datosServidor.getInputStream());
+            entradaServidor.readObject();
+
+            return true;
+        }catch(Exception ex){
+            ex.printStackTrace();
+            return false;
+        }
+    }
+
+
+    private void pEscuchaServidores(){
+        try{
+            ServerSocket conexionServidores = new ServerSocket(pEscuchaServidores);
+            Socket datosServidores;
+
+            while( (datosServidores = conexionServidores.accept()) != null){
+                apuntaServidores(datosServidores);
+            }
+        }catch(Exception ex){ex.printStackTrace();}
+    }
+    private void apuntaServidores(Socket datosServidores){
+        try{
+            ObjectInputStream entradaServidores = new ObjectInputStream(datosServidores.getInputStream());
+            int nuevoPuerto = (int) entradaServidores.readObject();
+            String nuevaDireccion = (String) entradaServidores.readObject();
+            ServidorStatus nuevoServidor = new ServidorStatus(nuevoPuerto, nuevaDireccion);
+            
+            if(!mServidores.contains(nuevoServidor)) mServidores.add(nuevoServidor);
+        }catch(Exception ex){ex.printStackTrace();}
+    }
+    
+    
+    
+    
+    public static void main(String args[]) {
+        //pasar puerto del servidor por linea de mandato
+        Proxy proxy = new Proxy();
+        AtiendeServidores atiende = proxy.new AtiendeServidores(proxy);
+        Thread hilo = new Thread(atiende);
+        hilo.start(); 
+        proxy.escuchaClientes();
+    }
+
+
+
+
+    private class AtiendeCliente implements Runnable{
+        Proxy mProxy;
+        Socket mSocket;
+
+        AtiendeCliente(Proxy proxy, Socket socket){
+            mProxy = proxy;
+            mSocket = socket;
+        }
+
+        @Override
+        public void run(){
+            mProxy.usaServidor(mSocket);;
+        }
+    }
+    private class AtiendeServidores implements Runnable{
+        Proxy mProxy;
+
+        AtiendeServidores(Proxy proxy){
+            mProxy = proxy;
+        }
+
+        @Override
+        public void run(){
+            mProxy.pEscuchaServidores();
+        }
+    }
+}

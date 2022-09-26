@@ -1,0 +1,66 @@
+justificación decisiones:
+	sockets para todo lo interno para "mejorar rendimiento"
+	corba entre cliente y proxy para "mejorar compatibilidad" con clientes
+		despues de todo, la carpeta distribuida puede ser NFS o SAMBA 
+			QUE SEA SAMBA, asi apoyarse mas en el "compatibilidad android ios"
+			y cambiarse mas adelante sin tocar el código
+
+	autenticacion
+		recibe un string de admin
+			si se puede partir en dos cachos, es creacion de usuario
+			si es uno solo, es solo correo, y es borrarlo
+
+		exlusion mutua con un booleano que se pone a 1 con cada escritura 
+			del csv y a 0 al acabar? 
+
+	exlusion mutua con los anillos y las imagenes
+		para que lo sea, mandar varias ordenes en una sola enviada
+
+	la preferencia por el sistema a o el sistema b depende del caso de uso
+		si los usuarios estan aplicando muchos filtros a una sola imagen,
+			y el uso de filtros  está equilibrado, el sistema A tiene menos overhead
+		si los usuarios aplican muy pocos filtros, la distribucion muy 
+			poco equilibrada, el sistema b deja mejorrepartir la carga.
+		el sistema A es mejor para muchos filtros y pocas imagenes, el b
+			para muchas imagenes y pocos filtros
+
+administrador en sistema B no puede ser solo el docker y lanzar a mano?
+	en B cada nodo del anillo se inicializa a un filtro, lo tiene en su sistema
+		cambiar => escribir el codigo en ese equipo y mandarle un set o cambiar 
+		de alguna manera el filtro con el que se identifica
+
+	no vale, 
+serialización en los anillos, sockets y minimizar reescritura
+	exclusion mutua entre los anillos, como? - 8
+corba en cliente - proxy?
+healthcheck a los multiservidores
+	multiservidores sirven de redundancia - 10
+syso.err a un log?
+
+
+
+
+U̶n̶a̶ ̶s̶o̶l̶a̶ ̶o̶r̶d̶e̶n̶ ̶p̶o̶r̶ ̶p̶e̶t̶i̶c̶i̶o̶n̶ ̶d̶e̶l̶ ̶m̶u̶l̶t̶i̶s̶e̶r̶v̶i̶d̶o̶r̶ ̶a̶l̶ ̶a̶n̶i̶l̶l̶o̶? 
+	y̶ ̶q̶u̶e̶ ̶e̶l̶ ̶s̶e̶r̶v̶i̶d̶o̶r̶ ̶h̶a̶g̶a̶ ̶u̶n̶a̶ ̶p̶e̶t̶i̶c̶i̶o̶n̶ ̶p̶o̶r̶ ̶c̶a̶d̶a̶ ̶f̶i̶l̶t̶r̶o̶,̶ ̶e̶l̶i̶g̶i̶e̶n̶d̶o̶ ̶u̶n̶ ̶n̶o̶d̶o̶ ̶nuevo?
+
+m̶i̶s̶m̶a̶ ̶d̶i̶r̶e̶c̶c̶i̶o̶n̶ ̶p̶a̶r̶a̶ ̶t̶o̶d̶o̶s̶ ̶a̶n̶i̶l̶l̶o̶?̶ ̶L̶o̶c̶a̶l̶h̶o̶s̶t̶ ̶o̶ ̶p̶a̶s̶a̶r̶ ̶P̶O̶R̶ ̶M̶A̶N̶D̶A̶T̶O̶?
+
+s̶y̶s̶t̶e̶m̶.̶e̶r̶r̶ ̶d̶o̶n̶d̶e̶ ̶i̶m̶p̶r̶i̶m̶e̶?̶ ̶C̶o̶m̶o̶ ̶h̶a̶c̶e̶r̶ ̶q̶u̶e̶ ̶s̶e̶a̶n̶ ̶i̶m̶p̶r̶e̶s̶i̶o̶n̶e̶s̶ ̶a̶ ̶u̶n̶ ̶l̶o̶g̶?
+	error otra salida, usar syso para normal, err para excepciones
+
+actualizacion de uso en nuevo testigo en lugar de parsear, no?
+
+aplicación del filtro en el mismo hilo lógico y que se pare el testigo
+
+no borrar la imagen, ya que es la carpeta compartida, sencillamente sobreescribirla 
+	con cada filtro
+
+meter o no la funcionalidad de autenticacion en proxy?
+	parsear el csv cada vez? 
+
+
+
+
+
+
+El diagrama b tiene anillo2 teniendo lugar despues de nodo 1, pero central encontrando tanto f1 como f2, para que el diagrama sea correcto hay que asumir un tercer anillo, que tuviese f2 aplicado, y por tanto en central, pero hubiese sido usado antes, por tanto anillo2 elegido

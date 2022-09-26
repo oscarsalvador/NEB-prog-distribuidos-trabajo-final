@@ -1,0 +1,5 @@
+module PeticionApp{
+    interface Peticion{
+        boolean getFiltrado(in string correo, in string hash, in string nombreImg, in string filtro);
+    };
+};

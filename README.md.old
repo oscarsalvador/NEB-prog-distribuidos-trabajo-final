@@ -1,0 +1,85 @@
+# distribuidos-final
+Entrega 2021-05-20
+
+## estructura de archivos
+	/documentacion/
+	/stash/ 
+	/fuentes/
+		/bin/ - jars propios
+			Cliente.jar (1+)
+				Cliente.java
+				/lib/ - CORBA
+
+			Proxy.jar (1, hilos)
+				Proxy.java
+				/lib/ - CORBA
+
+			Autenticacion.jar (1, correr con BBDDUsuarios.csv)
+				Autenticacion.java
+
+			AdminUsuarios.jar (1)
+				AdminUsuarios.java
+
+			Central.jar (1)
+				Central.java
+
+			MultiservidorA.jar (1+) sisA
+				MultiservidorA.java
+				utils-multiservidor-anillo
+					NodoUso.java
+					Tarea.java
+
+			NodoAnilloA.jar (6) sisA
+				NodoanilloA.java
+				utils-multiservidor-anillo
+					NodoUso.java
+					Tarea.java
+
+			MultiservidorB.jar (1+) sisB
+				MultiservidorB.java
+				utils-multiservidor-anillo
+					NodoUso.java
+					Tarea.java
+
+			NodoAnilloB.jar (6) sisB
+				NodoanilloA.java
+				utils-multiservidor-anillo
+					NodoUso.java
+					Tarea.java
+
+		/lib/ - dependencias de terceros
+		/src/ - fuentes
+			/front/ - interaccion con cliente
+				/cliente/
+					Cliente.java <argumentos de ORB>
+				/proxy/
+					Proxy.java <int puerto en el que Autenticacion.java escucha al proxy> <string direccion de Autenticacion.java> <int puerto en el que Autenticacion escucha para sync> <string direccion Autenticacion> <int puerto de Central para proxy> <string direccion de central> <argumentos de ORB>
+	
+			/seguridad/ - comprobacion y manejo de credenciales
+				AdminUsuarios.java <int puerto en el que Autenticacion.java escucha al admin> <string direccion de  Autenticacion.java> <int puerto en el que escuchar sincronizacion inicial>
+				Autenticacion.java <int puerto en el que escucha a proxy> <int puerto en el que escucha al admin> <string path al CSV> <int puerto en el que admin escucha sincronizacion al empezar> <string direccion de adminUsuarios> <int puerto para escuchar sincronizacion con Proxy>
+
+			/servidor/ - central, multiservidor, anillos
+				/sistemaA/
+					AdminFiltrosA.java <string path directorio local con filtros> <string path directorio remoto> <int puerto de Central al que hablar> <string> direccion de Central>
+					MultiservidorA.java <int puerto de Central en el que registrarse> <string direccion de Central> <int puerto en el que escuchar Central> <int puerto en el que escuchar Anillo>
+					NodoAnilloA.java 
+						Nodos intermedios <int numero de nodo> <int puerto escuchar anterior> <int puerto siguiente nodo> <string direccion siguiente nodo>
+						Nodo final <int numero de nodo> <int puerto escuchar anterior> <int puerto siguiente nodo> <string direccion siguiente nodo> <int puerto del multiservidor> <string direccion multiservidor>
+					TestigoA.java
+				/sistemaB/
+					AdminFiltrosB.java <string path directorio local con filtros> <int puerto de escucha para anillos> <int pureto de Central al que notificar> <String dirección de Central> 
+					MultiservidorB.java
+						int puertoRegistroCentral, String dCentral, int puertoEscucharCentral, int puertoEscucharAnillos
+					NodoAnilloB.java
+						Nodos intermedios <int numero de nodo> <int escuchar nodo anterior> <int puerto siguiente nodo> <string direccion siguiente nodo>
+						Nodo final <int numero de nodo> <int numero de anillo> <int puerto escuchar anterior> <int puerto siguiente nodo> <string direccion siguiente nodo> <int pureto del escucha del administrador de filtros> <string direccion del administrador> [<int puerto del multiservidor> <string direccion multiservidor>]+
+							puede haber varios multiservidores, "+" uno o mas
+					TestigoB.java
+				/Filtros/
+				/utils-multiservidor-anillo/
+					NodoUso.java
+					Tarea.java
+				Central.java <int puerto para escuchar Proxy> <int puerto para escuchar AdminFiltros> <int puerto para escuchar multiservidores registrarse>
+
+
